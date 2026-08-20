@@ -1,0 +1,46 @@
+# Vivado project/build artifacts
+*.jou
+*.log
+*.str
+*.dcp
+*.bit
+*.bin
+*.mcs
+*.ltx
+.Xil/
+.cache/
+.hw/
+.ip_user_files/
+.runs/
+.sim/
+.srcs/
+*.cache
+*.hw
+*.ip_user_files
+*.runs
+*.sim
+*.srcs
+vivado*.jou
+vivado*.log
+webtalk*.log
+webtalk*.jou
+
+# Simulation outputs / waveforms
+*.vcd
+*.fst
+*.wdb
+*.wlf
+xsim.dir/
+*.pb
+*.log
+
+# Editor / OS cruft
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Python (golden reference models / scripts)
+__pycache__/
+*.pyc
+.venv/
+venv/
