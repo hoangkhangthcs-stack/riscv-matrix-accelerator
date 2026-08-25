@@ -5,7 +5,7 @@ module a_reg (
     output logic [31:0] a_out
 );
 
-always_ff @(clk) begin
+always_ff @(posedge clk) begin
     if(a_write) 
         a_out <= a_in;
 end
