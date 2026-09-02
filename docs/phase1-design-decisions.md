@@ -96,6 +96,52 @@ responsibilities — both are implied but not assigned.
 
 ---
 
+## D3 — `IR`, `A`, `B` Register Reset Policy
+
+**Issue:** Do the `IR` instruction register and the `A`/`B` operand-latch
+registers need a defined reset value, given none of them hold architecturally
+meaningful data until first written?
+
+**Decision:** No reset for any of the three.
+
+**Rationale:**
+- This is a **different category of justification than D1**, not just the
+  same conclusion reapplied. D1 (register file `x1`–`x31`) rests on a
+  *software-behavior* assumption: no-reset is safe only insofar as correct
+  programs write a register before reading it — a property of the code
+  running on the CPU, not something the hardware itself guarantees.
+- `IR`/`A`/`B` rest on a stronger, purely *hardware-structural* guarantee
+  instead: the Control FSM's fixed state sequencing means the write
+  unconditionally precedes the first read, regardless of what program is
+  running.
+  - `IR` is written during Fetch — the FSM's reset-entry state — and is
+    first read by the decoder only at Decode, one state later.
+  - `A`/`B` are written during Decode, sourced from the register file's
+    combinational `rs1_data`/`rs2_data` outputs (see D1), and are first read
+    by the ALU only in a later state (e.g. Execute).
+
+**Consequences / open dependency on the future FSM:**
+- This conclusion is only valid if the Control FSM's reset state is Fetch
+  (or otherwise guarantees `ir_write` fires before any Decode-stage
+  consumption, and `a_write`/`b_write` fire before their first downstream
+  read). **This has not yet been verified**, since the Control FSM (roadmap
+  Section 8) does not exist yet. Flagged here as a requirement the FSM
+  design must satisfy, not an assumption already confirmed.
+- Simulation: `IR`/`A`/`B` hold `X` between reset deassertion and their
+  first respective write. No testbench should read them before that write
+  (already followed in `tb/ir_reg_tb.sv` and `tb/a_reg_tb.sv`).
+
+*Note: `ALUOut`'s reset policy has been discussed and agreed in principle
+(no reset, same category of argument as this entry but resting on a
+per-instruction-type write guarantee rather than one fixed state — R/I-type
+ALU ops, branches, loads/stores, and JAL/JALR each write `ALUOut` at a
+different point). This is intentionally not logged as a formal decision
+entry yet, since `alu_out_reg.sv` has not been implemented — see
+`docs/phase1-handoff.md` for the reasoning to carry forward. It should
+become D4 once the module exists.*
+
+---
+
 ## Open Items (flagged, not yet resolved)
 
 ### O1 — Branch/Jump Target Alignment

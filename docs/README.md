@@ -29,7 +29,7 @@ terminology used throughout the project.
 | Phase | Description | Status |
 |---|---|---|
 | 0 | Architecture specification | ✅ Complete |
-| 1 | RISC-V CPU (RTL + verification) | 🔜 Next |
+| 1 | RISC-V CPU (RTL + verification) | 🚧 In Progress |
 | 2 | Memory subsystem | ⬜ Planned |
 | 3 | Simple SoC bus | ⬜ Planned |
 | 4 | Memory-mapped I/O | ⬜ Planned |
@@ -42,6 +42,9 @@ terminology used throughout the project.
 | 11 | FPGA implementation | ⬜ Planned |
 | 12 | Performance / resource evaluation | ⬜ Planned |
 | 13 | Research-oriented optimization & comparison | ⬜ Planned |
+
+See [`docs/phase1-roadmap.md`](docs/phase1-roadmap.md) for detailed Phase 1
+module-level progress.
 
 ## Repository structure
 
