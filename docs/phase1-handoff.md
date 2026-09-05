@@ -11,15 +11,12 @@ repeating prior reasoning. Read this, `docs/phase1-roadmap.md`, and
 Modules 1–5 (ALU, Register File, Immediate Generator, Instruction Decoder,
 PC register) are **complete**: implemented, reviewed, and verified.
 
-Module 6 (datapath registers) is **partially complete**:
-- `IR`, `A`, `B` — complete.
-- `ALUOut`, `MDR` — **not implemented**. Reset-policy reasoning for `ALUOut`
-  has been agreed conversationally (see below) but no RTL exists yet.
+Modules 1–6 (ALU, Register File, Immediate Generator, Instruction Decoder,
+PC register, and all five datapath registers — `IR`/`A`/`B`/`ALUOut`/`MDR`)
+are **complete**: implemented, reviewed, and verified.
 
 Modules 7–11 (memory interface, Control FSM, illegal-instruction/halt logic,
-CPU integration, program bring-up) — **not started**. Do not treat the FSM
-as begun; nothing beyond conceptual boundary-setting (D2 in the decision
-log) has happened for it.
+CPU integration, program bring-up) — **not started**.
 
 ## Completed modules (files)
 
@@ -34,18 +31,16 @@ log) has happened for it.
 - `rtl/a_reg.sv` + `tb/a_reg_tb.sv`
 - `rtl/b_reg.sv` — developer-confirmed complete, structurally identical to
   `a_reg.sv`; **not independently reviewed in chat**.
+  - `rtl/ALUout.sv` + `sim/alu_out_reg_tb.sv`
+- `rtl/mdr_reg.sv` + `sim/mdr_reg_tb.sv`
 
 ## Remaining in Phase 1 (in order)
-
-1. `alu_out_reg.sv` — reset policy already decided (see below); write,
-   review, test.
-2. `mdr_reg.sv` — not yet discussed at all; needs concept/spec from scratch.
-3. Memory interface (Section 7).
-4. Control FSM (Section 8) — this is where several open dependencies below
+1. Memory interface (Section 7).
+2. Control FSM (Section 8) — this is where several open dependencies below
    get resolved/verified for the first time.
-5. Illegal-instruction/unmapped-access halt logic (Section 9).
-6. CPU integration (Section 10).
-7. RV32I program bring-up vs. golden-reference simulator (Section 11).
+3. Illegal-instruction/unmapped-access halt logic (Section 9).
+4. CPU integration (Section 10).
+5. RV32I program bring-up vs. golden-reference simulator (Section 11).
 
 ## Design decisions already made (do not re-derive)
 
@@ -76,6 +71,11 @@ Full detail in `docs/phase1-design-decisions.md`. Summary:
 - **`SYSTEM` (opcode `1110011`) and `FENCE` (opcode `0001111`) are both
   treated as illegal instructions** — proposed and accepted, no memory-
   ordering use case given this design's single-master, no-arbitration bus.
+  - **D4 — `ALUOut` reset:** no reset; multi-path write-before-read guarantee
+  (weaker/harder-to-verify claim than D3), unresolved until FSM exists.
+- **D5 — `MDR` reset:** no reset; simplest case — single `LOAD`-only path.
+- **O2 — sub-word load extraction placement (raw-vs-extracted before `MDR`)
+  is an open, f_max-relevant question for Section 7** — not yet decided.
 
 ## Open items (unresolved, flagged for later)
 
@@ -135,18 +135,16 @@ Full detail in `docs/phase1-design-decisions.md`. Summary:
 
 ## Immediate next task
 
-Implement `alu_out_reg.sv`:
-- Single source (ALU result), `alu_out_write`-gated, no reset (policy
-  already agreed above).
-- Same structural shape as `pc_reg.sv`/`ir_reg.sv`/`a_reg.sv`.
-- After review/test, move to `mdr_reg.sv` (concept not yet discussed) to
-  close out Section 6, then Section 7 (memory interface).
+Begin Section 7 (memory interface, I-mem + D-mem shared access abstraction).
+Resolve O2 (sub-word extraction timing/placement) as part of that design.
 
 ## Do NOT reconsider unless a new issue appears
 
 - Register file reset policy (D1).
 - Decoder/FSM responsibility boundary (D2).
 - `IR`/`A`/`B` no-reset policy (D3).
+-(D4)
+-(D5)
 - `ALUOut` no-reset policy (agreed, pending formal logging as D4).
 - `SYSTEM`/`FENCE` = illegal.
 - Sync (not async) reset as the project's default reset style.

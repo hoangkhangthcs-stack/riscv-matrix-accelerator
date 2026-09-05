@@ -17,7 +17,7 @@ Legend: ✅ Complete and verified · 🚧 Partially complete · ⬜ Not started
 | 3 | Immediate Generator | nothing | ✅ Complete — implemented, self-checking testbench passing |
 | 4 | Instruction Decoder | ALU's op encoding | ✅ Complete — Pass A (classification) + Pass B (illegal-instruction detection); 47-vector table-driven testbench, verified in Vivado and ModelSim |
 | 5 | PC register | ALU (next-value source) | ✅ Complete — implemented, directed testbench passing |
-| 6 | `IR` / `MDR` / `A` / `B` / `ALUOut` datapath registers | ALU, decoder | 🚧 Partially complete — see breakdown below |
+| 6 | `IR` / `MDR` / `A` / `B` / `ALUOut` datapath registers | ALU, decoder | ✅ Complete — all five implemented, reviewed, self-checked |
 | 7 | Memory interface (I-mem + D-mem, shared access abstraction) | none of the above, but used by fetch/load/store | ⬜ Not started |
 | 8 | Control FSM | everything above | ⬜ Not started |
 | 9 | Illegal-instruction / unmapped-access halt logic | decoder, FSM, memory interface | ⬜ Not started |
@@ -31,7 +31,7 @@ Legend: ✅ Complete and verified · 🚧 Partially complete · ⬜ Not started
 | `IR` | ✅ Complete | Implemented, directed testbench passing. No reset (see decision log D3). |
 | `A` | ✅ Complete | Implemented, directed testbench passing (including a sensitivity-list bug caught and fixed — missing `posedge`). No reset (D3). |
 | `B` | ✅ Complete (per developer confirmation) | Structurally identical to `A`; not independently reviewed in this chat, per developer's explicit choice to skip re-review. |
-| `ALUOut` | ⬜ Not started | Reset policy reasoned through and agreed (no reset — per-instruction-type write guarantee; see `docs/phase1-handoff.md`), but `alu_out_reg.sv` has not been implemented or reviewed. |
-| `MDR` | ⬜ Not started | Not yet discussed in detail. |
+| `ALUOut` | ✅ Complete | Implemented (`rtl/ALUout.sv`), reviewed, directed testbench passing (`sim/alu_out_reg_tb.sv`). No reset (D4). |
+| `MDR` | ✅ Complete | Implemented (`rtl/mdr_reg.sv`), reviewed, directed testbench passing (`sim/mdr_reg_tb.sv`). No reset (D5) — simplest case, single `LOAD`-only write/read path. |
 
-**Immediate next task:** implement, review, and verify `alu_out_reg.sv`, then `mdr_reg.sv`, to close out Section 6.
+**Immediate next task:** Section 7 — Memory interface (I-mem + D-mem, shared access abstraction). See design-decisions log O2 for an open sub-word-extraction question that belongs here.

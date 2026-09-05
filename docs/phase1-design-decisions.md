@@ -131,16 +131,53 @@ meaningful data until first written?
   first respective write. No testbench should read them before that write
   (already followed in `tb/ir_reg_tb.sv` and `tb/a_reg_tb.sv`).
 
-*Note: `ALUOut`'s reset policy has been discussed and agreed in principle
-(no reset, same category of argument as this entry but resting on a
-per-instruction-type write guarantee rather than one fixed state — R/I-type
-ALU ops, branches, loads/stores, and JAL/JALR each write `ALUOut` at a
-different point). This is intentionally not logged as a formal decision
-entry yet, since `alu_out_reg.sv` has not been implemented — see
-`docs/phase1-handoff.md` for the reasoning to carry forward. It should
-become D4 once the module exists.*
+---
+## D4 — `ALUOut` Register Reset Policy
+
+**Issue:** Same category of question as D3 — does `ALUOut` need a defined
+reset value, given it holds no architecturally meaningful data until first
+written?
+
+**Decision:** No reset.
+
+**Rationale:**
+- Same hardware-structural, write-before-read justification as D3 — but a
+  **weaker, multi-path claim** rather than D3's single-state guarantee.
+  `ALUOut` is written along a different path depending on instruction type:
+  R/I-type ALU result, branch target (Decode) vs. branch condition
+  (branch-specific state), load/store effective address, and JAL/JALR
+  `PC+4`. Each path must independently guarantee its write precedes
+  `ALUOut`'s first read for that instruction.
+- This is intentionally logged as a harder-to-verify claim than D3, not an
+  equally strong one — flagged here so it isn't accidentally treated as
+  "already proven" later.
+
+**Consequences:**
+- `rtl/ALUout.sv` implemented; `sim/alu_out_reg_tb.sv` (directed
+  write/hold/second-write) passes.
+- Full multi-path write-before-read verification remains **unresolved**
+  until the Control FSM (Section 8) exists — same open caveat as D3.
 
 ---
+
+## D5 — `MDR` Register Reset Policy
+
+**Issue:** Same category of question again — does `MDR` need a reset?
+
+**Decision:** No reset.
+
+**Rationale:**
+- Same hardware-structural category as D3/D4, but the **simplest case** of
+  the three: `MDR` is written and read along exactly one path — the `LOAD`
+  instruction type only (written in `MEM_READ`, read in `MEM_WB`). No other
+  instruction type touches it, so there is only one path to verify, not
+  several.
+
+**Consequences:**
+- `rtl/mdr_reg.sv` implemented; `sim/mdr_reg_tb.sv` (directed
+  write/hold/second-write) passes.
+- Single-path write-before-read verification remains **unresolved** until
+  the Control FSM exists.
 
 ## Open Items (flagged, not yet resolved)
 
@@ -169,3 +206,22 @@ halt-on-illegal-state treatment §3 already defines for illegal opcodes and
 unmapped addresses?
 
 **Status:** Open.
+
+### O2 — Sub-word Load Extraction: Timing/Placement
+
+Phase 0 §5 assigns byte/halfword extraction and sign/zero-extension to "the
+CPU," without specifying which cycle or which side of `MDR` it happens on.
+
+Two options were identified during `MDR`'s design:
+1. Extract/sign-extend combinationally in `MEM_READ`, before `MDR` latches
+   the value (adopted for the conceptual walkthrough, not yet built).
+2. Latch the **raw** 32-bit word into `MDR` in `MEM_READ`; extract
+   downstream, combinationally, in `MEM_WB`.
+
+Option 1 puts memory-access delay + extraction-mux delay + sign-extend delay
+all in `MEM_READ`'s critical path. Option 2 spreads that delay into a
+separate cycle instead. Given Phase 0 §9 tracks f<sub>max</sub> as a project
+metric, this should be decided with the trade-off named, not assumed.
+
+**Status:** Open — to be resolved when Section 7 (memory interface) is
+designed. Does not affect `mdr_reg.sv`'s interface either way (see D5).
